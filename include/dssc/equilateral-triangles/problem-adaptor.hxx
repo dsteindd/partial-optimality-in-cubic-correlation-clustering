@@ -2,6 +2,7 @@
 #ifndef DSSC_EQUILATERAL_ADAPTOR_HXX
 #define DSSC_EQUILATERAL_ADAPTOR_HXX
 
+#include <algorithm>
 #include <cassert>
 
 #include "math.h"
@@ -61,6 +62,7 @@ namespace dssc {
         // constructor which we always used should stay intact
         Rational const angleDifferenceWeight_;
         Rational const costAtDifferenceZero_;
+        Rational const angleDistanceOfCostZero_;
 
         Rational maxPairwiseDistance(Point2 const &p1, Point2 const &p2, Point2 const &p3) const;
 
@@ -86,7 +88,8 @@ namespace dssc {
                 tripletMaxEdgeLengthThreshold_(tripletMaxEdgeLengthThreshold),
                 edgeLengthThreshold_(edgeLengthThreshold),
                 angleDifferenceWeight_(-tripletCostAtAngleDistanceZero / angleDistanceOfCostZero),
-                costAtDifferenceZero_(tripletCostAtAngleDistanceZero) {
+                costAtDifferenceZero_(tripletCostAtAngleDistanceZero),
+                angleDistanceOfCostZero_(angleDistanceOfCostZero) {
         assert(tripletCostAtAngleDistanceZero < 0);
         assert(edgeCostAtDistanceZero < 0);
         assert(tripletMaxEdgeLengthThreshold >= 0);
@@ -110,7 +113,8 @@ namespace dssc {
                 tripletMaxEdgeLengthThreshold_(tripletMaxEdgeLengthThreshold),
                 edgeLengthThreshold_(edgeLengthThreshold),
                 angleDifferenceWeight_(tripletAngleCostWeight),
-                costAtDifferenceZero_(costAtDistanceZero) {
+                costAtDifferenceZero_(costAtDistanceZero),
+                angleDistanceOfCostZero_(-costAtDistanceZero / tripletAngleCostWeight) {
         assert(tripletCostAtAllPointsClose < 0);
         assert(edgeCostAtDistanceZero < 0);
         assert(tripletMaxEdgeLengthThreshold >= 0);
@@ -147,9 +151,15 @@ namespace dssc {
         }
         Rational const angleDifference = calculateAngleDifferenceToEquilateral(p0, p1, p2);
 
-        Rational const cost = angleDifferenceWeight_ * angleDifference + costAtDifferenceZero_;
-
-        return cost;
+        // The order of floating point operations below is the one used for the experiments of the paper.
+        // Results are sensitive to it, so do not simplify these expressions.
+        if (angleDifference > angleDistanceOfCostZero_) {
+            // positive cost, scaled to [0, -costAtDifferenceZero_]
+            Rational const maxAngleDifference = 4 * M_PI / 3;
+            return -costAtDifferenceZero_ * (angleDifference - angleDistanceOfCostZero_)
+                   / (maxAngleDifference - angleDistanceOfCostZero_);
+        }
+        return angleDifferenceWeight_ * (angleDifference - angleDistanceOfCostZero_);
     }
 
     template<class R, AngleCostMode M>

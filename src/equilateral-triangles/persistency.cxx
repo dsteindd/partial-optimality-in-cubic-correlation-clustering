@@ -6,8 +6,6 @@
 #include "dssc/csv-writer.hxx"
 #include "chrono"
 #include "filesystem"
-#include "dssc/equilateral-triangles/latex.hxx"
-#include "dssc/cost-adjustment-adaptors/problem-rescaling-adaptor.hxx"
 
 typedef dssc::ProblemEquilateralTriangles<double> Problem;
 typedef dssc::AngleCostMode AngleCostMode;
@@ -16,7 +14,6 @@ using Adaptor = dssc::ProblemEquilateralTrianglesAdaptor<
         double,
         AngleCost
 >;
-typedef dssc::CostRescalingAdaptor<double, dssc::RescalingCostType::TRIPLES> Rescaler;
 
 
 typedef andres::graph::multicut_cubic::Persistency<double> Persistency;
@@ -78,17 +75,6 @@ initializeCSVWriter(
     return csvWriter;
 }
 
-
-inline
-std::string
-currentDateTime() {
-    std::time_t t = std::time(nullptr);
-    std::tm *now = std::localtime(&t);
-
-    char buffer[128];
-    strftime(buffer, sizeof(buffer), "%m-%d-%Y-%H-%M-%S", now);
-    return buffer;
-}
 
 inline
 void
@@ -665,29 +651,17 @@ runAllCriteriaExperiments(size_t const n) {
 //     30° dev -> fixed
     double const &distanceAtCostZero = M_PI / 6;
 
-    double maxPossibleCost = 0;
-    if (AngleCost == AngleCostMode::SUM_ANGLE_DIFFERENCES_ABS) {
-        maxPossibleCost = -costAtDistanceZero / distanceAtCostZero * (4 * M_PI / 3 - distanceAtCostZero);
-    } else {
-        throw std::runtime_error("unknown angle cost mode.");
-    }
-
     double const thresholdFactor = 4;
 
     size_t const &startSeed = 4242;
     size_t const &numSeeds = 30;
 
-    std::vector<double> sigmas;
-
-    double const & sigmaMin = 0.00625;
-    double const & sigmaStep = 0.00625;
-    double const & sigmaMax = 0.1;
-
-    double sigma = sigmaMin;
-    while (sigma <= sigmaMax){
-        sigmas.push_back(sigma);
-        sigma += sigmaStep;
-    }
+    // the sigmas of the paper, as literals: accumulating sigmaStep changes the last bits and with them the instances
+    std::vector<double> sigmas = {
+            0.00625, 0.0125, 0.01875, 0.025, 0.03125, 0.0375, 0.04375, 0.05,
+            0.05625, 0.0625, 0.06875, 0.075, 0.08125, 0.0875, 0.09375, 0.1,
+            0.1125, 0.125, 0.1375, 0.15
+    };
 
     std::vector<Point2> midPoints = {
             Point2({0, 1}),
@@ -736,6 +710,9 @@ runAllCriteriaExperiments(size_t const n) {
 
     std::filesystem::path csvFilePath = outDir / fileName;
 
+    // create the directory before the first CSV writer opens a file in it, otherwise the first seed is not written
+    std::filesystem::create_directories(outDir);
+
     for (auto &sigma: sigmas) {
 
 
@@ -769,21 +746,13 @@ runAllCriteriaExperiments(size_t const n) {
                     seed
             );
 
-            Adaptor<AngleCost> baseAdaptor(
+            Adaptor<AngleCost> adaptor(
                     problem,
                     distanceAtCostZero,
                     costAtDistanceZero,
                     costAtDistanceZero,
                     tripletMaxEdgeLengthThreshold,
                     edgeLengthThreshold
-            );
-
-            Rescaler adaptor(
-                    baseAdaptor,
-                    -costAtDistanceZero,
-                    maxPossibleCost,
-                    costAtDistanceZero,
-                    costAtDistanceZero
             );
 
             runEquilateralTrianglesInstanceAllCriteria(
@@ -848,23 +817,13 @@ runEquilateralTrianglesInstanceIndividualCriteria(
             seed
     );
 
-    Adaptor<AngleCost> baseAdaptor(
+    Adaptor<AngleCost> adaptor(
             problem,
             distanceAtCostZero,
             costAtDistanceZero,
             costAtDistanceZero,
             tripletMaxEdgeLengthThreshold,
             edgeLengthThreshold
-    );
-
-    double maxPossibleCost = costAtDistanceZero / distanceAtCostZero * (4 * M_PI / 3 - distanceAtCostZero);
-
-    Rescaler adaptor(
-            baseAdaptor,
-            -costAtDistanceZero,
-            maxPossibleCost,
-            costAtDistanceZero,
-            costAtDistanceZero
     );
 
     std::string subsetJoinFileName = csvBaseFileName + "_subsetJoin.csv";
@@ -1065,6 +1024,9 @@ runIndividualExperiments(size_t const &n) {
                                    "distanceOfCostZero_"
                                    + to_string_with_precision(thresholdFactor, 0) + "sigma";
     std::string baseFileName = "experiment";
+
+    // create the directory before the first CSV writer opens a file in it, otherwise the first seed is not written
+    std::filesystem::create_directories(outDir);
 
     for (auto &sigma: sigmas) {
         std::cout << "Running with sigma = " << sigma << "... " << std::endl;

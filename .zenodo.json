@@ -1,0 +1,32 @@
+{
+  "title": "Code for the Paper \"Partial Optimality in Cubic Correlation Clustering\"",
+  "upload_type": "software",
+  "description": "C++ implementation of the partial optimality conditions for cubic correlation clustering and the experiments of the paper \"Partial Optimality in Cubic Correlation Clustering\" (ICML 2023).",
+  "creators": [
+    {
+      "name": "Stein, David",
+      "affiliation": "Faculty of Computer Science, TU Dresden, Germany"
+    }
+  ],
+  "license": "mit",
+  "keywords": [
+    "correlation clustering",
+    "partial optimality",
+    "cubic objective",
+    "combinatorial optimization"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://proceedings.mlr.press/v202/stein23a.html",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-conferencepaper",
+      "scheme": "url"
+    },
+    {
+      "identifier": "arXiv:2302.04694",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-preprint",
+      "scheme": "arxiv"
+    }
+  ]
+}

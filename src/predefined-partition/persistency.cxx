@@ -70,17 +70,6 @@ initializeCSVWriter(
 
 
 inline
-std::string
-currentDateTime() {
-    std::time_t t = std::time(nullptr);
-    std::tm* now = std::localtime(&t);
-
-    char buffer[128];
-    strftime(buffer, sizeof(buffer), "%m-%d-%Y-%H-%M-%S", now);
-    return buffer;
-}
-
-inline
 void
 doInitialSnapshot(
         Persistency & persistency,
@@ -301,64 +290,6 @@ doFindIndependentSubsets(
                                std::to_string(persistency.remainingTriples()),
                                std::to_string(persistency.totalDurationFindIndependentProblems().count() * 1000)
                        });
-}
-
-
-inline
-void
-runPredefinedPartitionInstanceAllCriteria(
-        double const & alpha,
-        double const & sigma0,
-        double const & sigma1,
-        size_t const & n,
-        double const & edgeScale = 1.0,
-        double const & tripletScale = 1.0,
-        size_t const & seed = 4242,
-        std::string const & csvFileName = "test.csv"
-){
-    assert(alpha >= 0 && alpha <= 1);
-    std::vector<size_t > const & clusterSizes = {n, 2*n, 2*n, 3*n};
-
-    double intraMean = -1 + alpha;
-    double interMean = 1 - alpha;
-    double sigma = sigma0 + alpha*(sigma1 - sigma0);
-
-    std::normal_distribution<double> interDistribution(interMean, sigma);
-    std::normal_distribution<double> intraDistribution(intraMean, sigma);
-
-    Problem problem = Problem (
-            clusterSizes,
-            intraDistribution,
-            interDistribution,
-            seed
-    );
-
-    Scaler scaler(problem, edgeScale, tripletScale);
-
-    Persistency persistency(scaler);
-
-    CSVWriter csvWriter = initializeCSVWriter(
-            alpha,
-            sigma0,
-            sigma1,
-            n,
-            edgeScale,
-            tripletScale,
-            seed,
-            csvFileName
-    );
-
-    doInitialSnapshot(persistency, csvWriter);
-    doSubsetJoinCriterion(persistency, csvWriter);
-    doEdgeSubgraphCriterion(persistency, csvWriter);
-    doTripletSubgraphCriterion(persistency, csvWriter);
-    doTripletEdgeJoinCriterion(persistency, csvWriter);
-    doEdgeJoinCriterion(persistency, csvWriter);
-    doTripletJoinCriterion(persistency, csvWriter);
-    doEdgeCutCriterion(persistency, csvWriter);
-    doTripletCutCriterion(persistency, csvWriter);
-
-    csvWriter.close();
 }
 
 
@@ -1074,9 +1005,12 @@ runAllCriteriaExperiments(
             0.5, 0.525, 0.55, 0.575,
             0.6, 0.625, 0.65, 0.675,
             0.7, 0.725, 0.75, 0.775,
-            0.8, 0.825, 0.85, 0.875, 0.9, 1.0
+            0.8, 0.825, 0.85, 0.875,
+            0.9, 0.925, 0.95, 0.975,
+            1.0
     };
-    std::vector<double> betas = {0.0, 0.5, 1.0};
+    // the betas of the paper
+    std::vector<double> betas = {0.0, 0.01, 0.5, 1.0};
 
     size_t const & startSeed = 4242;
     size_t const & numSeeds = 30;
@@ -1151,12 +1085,23 @@ runIndividualExperiments(size_t const n){
 
     // alpha from 0 to 1
     std::vector<double> alphas = {
-        0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+            0.0, 0.025, 0.05, 0.075,
+            0.1, 0.125, 0.15, 0.175,
+            0.2, 0.225, 0.25, 0.275,
+            0.3, 0.325, 0.35, 0.375,
+            0.4, 0.425, 0.45, 0.475,
+            0.5, 0.525, 0.55, 0.575,
+            0.6, 0.625, 0.65, 0.675,
+            0.7, 0.725, 0.75, 0.775,
+            0.8, 0.825, 0.85, 0.875,
+            0.9, 0.925, 0.95, 0.975,
+            1.0
     };
 
     // triplet costs are scaled with beta
     // edge costs are scaled with 1 - beta
-    std::vector<double> betas = {0.0, 0.5, 1.0};
+    // the betas of the paper
+    std::vector<double> betas = {0.0, 0.01, 0.5, 1.0};
 
     size_t const & startSeed = 4242;
     size_t const & numSeeds = 30;

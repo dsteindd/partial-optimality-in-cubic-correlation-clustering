@@ -1,7 +1,6 @@
 
 #include "dssc/equilateral-triangles/problem.hxx"
 #include "dssc/equilateral-triangles/problem-adaptor.hxx"
-#include "dssc/cost-adjustment-adaptors/problem-rescaling-adaptor.hxx"
 
 typedef dssc::ProblemEquilateralTriangles<double> Problem;
 typedef dssc::ProblemEquilateralTriangles<double>::Point2 Point;
@@ -9,8 +8,6 @@ typedef dssc::ProblemEquilateralTriangles<double>::Triangle Triangle;
 
 template<dssc::AngleCostMode ANGLE_COST_MODE>
 using ProblemAdaptor = dssc::ProblemEquilateralTrianglesAdaptor<double, ANGLE_COST_MODE>;
-
-typedef dssc::CostRescalingAdaptor<double, dssc::RescalingCostType::TRIPLES> Rescaler;
 
 
 inline void test(bool const condition) {
@@ -52,7 +49,6 @@ degreesToRads(double degrees){
 void testAngleDifferenceSumAbs() {
     typedef ProblemAdaptor<dssc::AngleCostMode::SUM_ANGLE_DIFFERENCES_ABS> ProblemAdaptor;
 
-    double const maximumAngleDifference = 4*M_PI / 3;
 
     {
         // right angle triangle
@@ -63,8 +59,6 @@ void testAngleDifferenceSumAbs() {
         double const &edgeCostAtDistanceZero = -1;
         double const &tripletMaxEdgeLengthThreshold = 0;
         double const &edgeLengthThreshold = 0;
-
-        double const maximumPossibleCost = -tripletCostAtAngleDistanceZero / angleDifferenceAtCostZero*(maximumAngleDifference - angleDifferenceAtCostZero);
 
         Triangle const triangle = getTriangle(M_PI / 2, M_PI / 4, M_PI / 4);
 
@@ -79,23 +73,15 @@ void testAngleDifferenceSumAbs() {
                 edgeLengthThreshold
         );
 
-        Rescaler rescaled(
-                adaptor,
-                -tripletCostAtAngleDistanceZero,
-                maximumPossibleCost,
-                tripletCostAtAngleDistanceZero,
-                tripletCostAtAngleDistanceZero
-        );
-
         // angle difference is here 30 + 2*15 = 60
         // expected positive: 1*(240 - 60)/ (240 - 30)
         double const expected = (60. - 30) / (240 - 30);
-        double const actual = rescaled.costOfTriple({2, 1, 0});
+        double const actual = adaptor.costOfTriple({2, 1, 0});
 
         test(isClose(actual, expected));
-        test(rescaled.costOfEdge({1, 0}) == 0);
-        test(rescaled.costOfEdge({2, 1}) == 0);
-        test(rescaled.costOfEdge({2, 0}) == 0);
+        test(adaptor.costOfEdge({1, 0}) == 0);
+        test(adaptor.costOfEdge({2, 1}) == 0);
+        test(adaptor.costOfEdge({2, 0}) == 0);
     }
 
     {
@@ -105,8 +91,6 @@ void testAngleDifferenceSumAbs() {
         double const &edgeCostAtDistanceZero = -1;
         double const &tripletMaxEdgeLengthThreshold = 0;
         double const &edgeLengthThreshold = 0;
-
-        double const maximumPossibleCost = -tripletCostAtAngleDistanceZero / angleDifferenceAtCostZero*(maximumAngleDifference - angleDifferenceAtCostZero);
 
         Triangle const triangle = getTriangle(M_PI / 3, M_PI / 3, M_PI / 3);
 
@@ -122,16 +106,8 @@ void testAngleDifferenceSumAbs() {
                 edgeLengthThreshold
         );
 
-        Rescaler rescaler(
-                adaptor,
-                -tripletCostAtAngleDistanceZero,
-                maximumPossibleCost,
-                tripletCostAtAngleDistanceZero,
-                tripletCostAtAngleDistanceZero
-                );
-
         double const expected = -1;
-        double const actual = rescaler.costOfTriple({2, 1, 0});
+        double const actual = adaptor.costOfTriple({2, 1, 0});
 
         test(isClose(actual, expected));
         test(adaptor.costOfEdge({1, 0}) == 0);
@@ -146,8 +122,6 @@ void testAngleDifferenceSumAbs() {
         double const &edgeCostAtDistanceZero = -1;
         double const &tripletMaxEdgeLengthThreshold = 0;
         double const &edgeLengthThreshold = 0;
-
-        double const maximumPossibleCost = -tripletCostAtAngleDistanceZero / angleDifferenceAtCostZero*(maximumAngleDifference - angleDifferenceAtCostZero);
 
         Triangle const triangle = getDegenerateTriangle(0.2);
 
@@ -163,16 +137,8 @@ void testAngleDifferenceSumAbs() {
                 edgeLengthThreshold
         );
 
-        Rescaler rescaler(
-                adaptor,
-                -tripletCostAtAngleDistanceZero,
-                maximumPossibleCost,
-                tripletCostAtAngleDistanceZero,
-                tripletCostAtAngleDistanceZero
-        );
-
         double const expected = 1;
-        double const actual = rescaler.costOfTriple({2, 1, 0});
+        double const actual = adaptor.costOfTriple({2, 1, 0});
 
         test(isClose(actual, expected));
         test(adaptor.costOfEdge({1, 0}) == 0);
@@ -187,8 +153,6 @@ void testAngleDifferenceSumAbs() {
         double const &edgeCostAtDistanceZero = -1;
         double const &tripletMaxEdgeLengthThreshold = 0;
         double const &edgeLengthThreshold = 0;
-
-        double const maximumPossibleCost = -tripletCostAtAngleDistanceZero / angleDifferenceAtCostZero*(maximumAngleDifference - angleDifferenceAtCostZero);
 
         Triangle const triangle = getTriangle(
                 degreesToRads(55),
@@ -208,18 +172,10 @@ void testAngleDifferenceSumAbs() {
                 edgeLengthThreshold
         );
 
-        Rescaler rescaler(
-                adaptor,
-                -tripletCostAtAngleDistanceZero,
-                maximumPossibleCost,
-                tripletCostAtAngleDistanceZero,
-                tripletCostAtAngleDistanceZero
-        );
-
         // expected delta = 20
         // expected cost = 1 /(30)*(20 - 30) = - 1/3
         double const expected = - 1.0 / 3;
-        double const actual = rescaler.costOfTriple({2, 1, 0});
+        double const actual = adaptor.costOfTriple({2, 1, 0});
 
         test(isClose(actual, expected));
         test(adaptor.costOfEdge({1, 0}) == 0);

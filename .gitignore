@@ -18,3 +18,4 @@ latex/persistency/persistency.pdf
 latex/notes/hypercycle.pdf
 /cmake-build-debug
 .idea
+/results_backup

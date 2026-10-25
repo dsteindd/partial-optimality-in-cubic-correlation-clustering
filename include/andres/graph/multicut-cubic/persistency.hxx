@@ -475,6 +475,9 @@ namespace andres {
                         }
                     }
 
+                    // store the sub problems of this call only, accumulating them across calls corrupts the counts
+                    subProblems_ = subProblems;
+
                     // adjust zero edges
                     for (auto const &subsetOne: subProblems) {
                         for (auto const &subsetTwo: subProblems) {

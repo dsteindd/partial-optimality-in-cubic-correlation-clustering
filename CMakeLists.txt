@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 #set(CMAKE_BUILD_TYPE DEBUG)
 
@@ -6,8 +6,9 @@ project(cubic-multicut)
 enable_testing()
 #set(CMAKE_CXX_STANDARD 20)
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+# GCC >= 16 implements P0952R2, which changes the random numbers drawn by std::normal_distribution.
+# The experiments of the paper were generated with the previous definition, which this macro restores.
+add_compile_definitions(_GLIBCXX_USE_OLD_GENERATE_CANONICAL)
 
 # tests namespace andres
 add_executable(test-multicut-cubic-problem src/test/andres/graph/multicut-cubic/problem.cxx)
@@ -19,10 +20,6 @@ target_include_directories(test-partition PUBLIC include)
 add_test(test-partition test-partition)
 
 # tests namespace dssc
-add_executable(test-math src/test/dssc/math.cxx)
-target_include_directories(test-math PUBLIC include)
-add_test(test-math test-math)
-
 add_executable(test-triangles-adaptor-costs src/test/dssc/adaptors/triangles/costs.cxx)
 target_include_directories(test-triangles-adaptor-costs PUBLIC include)
 add_test(test-triangles-adaptor-costs test-triangles-adaptor-costs)
@@ -71,10 +68,6 @@ add_executable(test-triplet-edge-join src/test/andres/graph/multicut-cubic/persi
 target_include_directories(test-triplet-edge-join PUBLIC include)
 add_test(test-triplet-edge-join test-triplet-edge-join)
 
-add_executable(test-cost-rescaling src/test/dssc/adaptors/problem-rescaling-adaptor.cxx)
-target_include_directories(test-cost-rescaling PUBLIC include)
-add_test(test-cost-rescaling test-cost-rescaling)
-
 add_executable(test-subset-join src/test/andres/graph/multicut-cubic/persistency-subset-join.cxx)
 target_include_directories(test-subset-join PUBLIC include)
 add_test(test-subset-join test-subset-join)
@@ -85,3 +78,9 @@ target_include_directories(equilateral-triangles-persistency PUBLIC include)
 
 add_executable(predefined-partition-persistency src/predefined-partition/persistency.cxx)
 target_include_directories(predefined-partition-persistency PUBLIC include)
+
+add_executable(equilateral-triangles-instance-sizes src/equilateral-triangles/instance-sizes.cxx)
+target_include_directories(equilateral-triangles-instance-sizes PUBLIC include)
+
+add_executable(predefined-partition-instance-sizes src/predefined-partition/instance-sizes.cxx)
+target_include_directories(predefined-partition-instance-sizes PUBLIC include)
