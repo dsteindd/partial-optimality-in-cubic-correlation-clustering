@@ -6,6 +6,7 @@ authors:
   - family-names: Stein
     given-names: David
     affiliation: "Faculty of Computer Science, TU Dresden, Germany"
+doi: 10.5281/zenodo.23643382
 repository-code: "https://github.com/dsteindd/partial-optimality-in-cubic-correlation-clustering"
 license: MIT
 keywords:

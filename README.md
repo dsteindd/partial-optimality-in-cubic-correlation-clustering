@@ -1,5 +1,7 @@
 # Code for the Paper "Partial Optimality in Cubic Correlation Clustering"
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23643382.svg)](https://doi.org/10.5281/zenodo.23643382)
+
 This is the code for [Partial Optimality in Cubic Correlation Clustering](https://proceedings.mlr.press/v202/stein23a.html), published at ICML 2023 (also on [arXiv](https://arxiv.org/abs/2302.04694)).
 
 ## Requirements
@@ -174,6 +176,7 @@ If you use this code, please cite the paper:
     url = {https://proceedings.mlr.press/v202/stein23a.html},
 }
 ```
+The code is archived on Zenodo under the DOI [10.5281/zenodo.23643382](https://doi.org/10.5281/zenodo.23643382), which always refers to the latest version.
 
 ## License
 This code is licensed under the MIT License, see [LICENSE](LICENSE).
